@@ -1,0 +1,14 @@
+# Ignore Dependencies
+node_modules/
+__pycache__/
+venv/
+env/
+
+# Ignore Data Files (Too big for GitHub)
+*.csv
+*.zip
+data/
+
+# Ignore System Files
+.DS_Store
+.env
