@@ -19,8 +19,7 @@ function App() {
 
     try {
       // Send to your Python Backend
-      const response = await axios.post('http://localhost:8000/predict', formData);
-      setData(response.data.data);
+      const response = await axios.post('https://zatii-climate-monitor.onrender.com/predict', formData);      setData(response.data.data);
     } catch (error) {
       console.error("Error analyzing climate data:", error);
       alert("Error connecting to backend. Is the Python server running?");
