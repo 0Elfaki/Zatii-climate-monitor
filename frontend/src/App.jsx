@@ -1,74 +1,118 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
-import './App.css'; // Keeps basic Vite styling, harmless
+import Papa from 'papaparse'; // <--- Import this
+import FileUploader from './FileUploader';
+import AnalysisSteps from './AnalysisSteps';
+import ResultsDashboard from './ResultsDashboard';
+import { LayoutDashboard } from 'lucide-react';
 
-function App() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+export default function App() {
+  const [step, setStep] = useState('upload');
+  const [trainFile, setTrainFile] = useState(null);
+  const [testFile, setTestFile] = useState(null);
+  
+  // New State: Store the actual data for the chart
+  const [chartData, setChartData] = useState(null);
 
-  const handleUpload = async (event) => {
-    setLoading(true);
-    const files = event.target.files;
-    const formData = new FormData();
-    
-    // Pack all files to send to backend
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
-    }
+  const isReady = trainFile && testFile;
 
-    try {
-      // Send to your Python Backend
-      const response = await axios.post('https://zatii-climate-monitor.onrender.com/predict', formData);      setData(response.data.data);
-    } catch (error) {
-      console.error("Error analyzing climate data:", error);
-      alert("Error connecting to backend. Is the Python server running?");
-    }
-    setLoading(false);
+  // New Function: Read the CSV and convert it for the Chart
+  const handleAnalysisStart = () => {
+    if (!testFile) return;
+
+    // Use PapaParse to read the file text
+    Papa.parse(testFile, {
+      header: true,
+      dynamicTyping: true,
+      complete: (results) => {
+        // We assume the CSV has columns: 'day', 'rain', 'threshold'
+        // If the user uploads a file with different columns, this might need adjustment
+        // For now, we trust the input or use the raw results.data
+        setChartData(results.data);
+        setStep('processing');
+      },
+      error: (error) => {
+        console.error("Error parsing CSV:", error);
+        alert("Error reading file. Please check the CSV format.");
+      }
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
-      <h1 className="text-3xl font-bold text-green-700 mb-6">Zatii Climate Monitor 🌍</h1>
+    <div className="min-h-screen bg-slate-50 font-sans text-gray-900">
       
-      {/* Upload Section */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 className="text-xl font-semibold mb-4">1. Upload Climate Data</h2>
-        <input 
-          type="file" 
-          multiple 
-          onChange={handleUpload} 
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-        />
-        {loading && <p className="text-blue-600 mt-2 font-medium animate-pulse">Running Titanium Master Engine...</p>}
-      </div>
-
-      {/* Results Section */}
-      {data.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">2. Dry Spell Forecast</h2>
-          
-          <div style={{ width: '100%', height: 400 }}>
-            <ResponsiveContainer>
-              <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="risk_score" stroke="#16a34a" strokeWidth={3} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+      <nav className="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto flex items-center gap-3">
+          <div className="bg-blue-600 p-2 rounded-lg text-white">
+            <LayoutDashboard size={24} />
           </div>
-          
-          <div className="mt-6 p-4 bg-gray-50 rounded border border-gray-200">
-            <h3 className="font-bold text-lg">Analysis Report:</h3>
-            <p className="text-gray-700">Total Days Analyzed: <span className="font-mono">{data.length}</span></p>
-            <p className="text-red-600 font-semibold">High Risk Alerts: {data.filter(d => d.status === "High Risk").length}</p>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">Zatii <span className="text-blue-600">Climate Monitor</span></h1>
+            <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">Algadarif Early Warning System</p>
           </div>
         </div>
-      )}
+      </nav>
+
+      <main className="max-w-6xl mx-auto p-8">
+        
+        {/* PHASE 1: UPLOAD */}
+        {step === 'upload' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+             {/* ... (Header Text remains same) ... */}
+            <div className="text-center mb-12 mt-4">
+              <h2 className="text-3xl font-extrabold text-gray-900 mb-4">Predict Dry Spells in Algadarif</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Upload historical data and current seasonal predictors.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 mb-10">
+              <FileUploader 
+                title="1. Historical Rainfall Data (Train)" 
+                onFileSelect={(f) => setTrainFile(f)} 
+              />
+              <FileUploader 
+                title="2. Seasonal Predictors (Test)" 
+                onFileSelect={(f) => setTestFile(f)} 
+              />
+            </div>
+
+            <div className="text-center">
+              <button
+                disabled={!isReady}
+                onClick={handleAnalysisStart} // <--- CHANGED THIS function
+                className={`
+                  px-10 py-4 rounded-full font-bold text-lg shadow-xl transition-all transform
+                  ${isReady 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 hover:shadow-2xl' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
+                `}
+              >
+                {isReady ? 'Run Analysis Model ⚡' : 'Upload CSVs to Start'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* PHASE 2: PROCESSING */}
+        {step === 'processing' && (
+          <AnalysisSteps onComplete={() => setStep('results')} />
+        )}
+
+        {/* PHASE 3: RESULTS */}
+        {step === 'results' && (
+          <div>
+            <button 
+              onClick={() => { setStep('upload'); setTrainFile(null); setTestFile(null); }}
+              className="mb-6 text-sm text-gray-500 hover:text-blue-600 underline"
+            >
+              ← Start New Analysis
+            </button>
+            {/* PASS THE REAL DATA DOWN */}
+            <ResultsDashboard data={chartData} />
+          </div>
+        )}
+
+      </main>
     </div>
   );
 }
-
-export default App;
