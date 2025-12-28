@@ -96,4 +96,3 @@ This project is open-source and available for community use.
 **Almegdad Elfaki**  
 Software Engineer | AI & Climate Tech  
 GitHub: [@0Elfaki](https://github.com/0Elfaki)  
-Organization: Zatii
