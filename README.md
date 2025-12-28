@@ -77,11 +77,6 @@ Instead of "black box" statistics, features are engineered based on physical law
 - `evaluate.py` — Generate F1 scores and performance metrics
 - `preprocess.py` — Apply physics-informed feature engineering
 
-### Key Performance Metrics
-
-- **Current Rank**: Top 5 (Leaderboard)
-- **F1 Score**: ~0.52 (Optimized via Threshold Tuning)
-
 ***
 
 ## 💡 Example Use Case
@@ -98,9 +93,7 @@ This project is open-source and available for community use.
 
 ## 🙋‍♂️ Author
 
-**Muqaddad Elfaki**  
+**Almegdad Elfaki**  
 Software Engineer | AI & Climate Tech  
 GitHub: [@0Elfaki](https://github.com/0Elfaki)  
 Organization: Zatii
-
-[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/57468014/9b486151-f6cc-4cbc-af13-1b94c9706903/Screenshot-2025-12-28-181826.jpg)
